@@ -32,13 +32,6 @@ export const mainValidationSchema = {
     "any.only": "Repeat password must match the password",
     "any.required": "Repeat Password is required",
   }),
-  phone: Joi.string()
-    .pattern(/^01[0125][0-9]{8}$/)
-    .required()
-    .messages({
-      "string.pattern.base": "Only Egyptian phone numbers are allowed",
-      "any.required": "Phone number is required",
-    }),
   token: Joi.string()
     .pattern(/^[A-Za-z0-9-_]+\.[A-Za-z0-9-_]+\.[A-Za-z0-9-_.+/=]*$/)
     .required()
@@ -53,11 +46,14 @@ export const mainValidationSchema = {
     "any.required": "id is required",
   }),
   code: Joi.string().length(6).hex().required(),
-  name: Joi.string().min(2).max(30).required().messages({
-    "string.empty": `name cannot be an empty field`,
-    "string.min": "name must be at least 2 characters long",
-    "string.max": "name cannot be more than 30 characters long",
-    "any.required": "name is required",
+  text: Joi.string().min(1).required().messages({
+    "string.empty": `Text cannot be an empty field`,
+    "string.min": "Text must be at least 1 character long",
+    "any.required": "Text is required",
+  }),
+  privatePost: Joi.boolean().messages({
+    "boolean.base": "Private must be a boolean",
+    "any.required": "Private is required",
   }),
 };
 
