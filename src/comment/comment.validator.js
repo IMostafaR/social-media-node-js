@@ -7,4 +7,18 @@ const createCommentValidation = Joi.object({
   text: mainValidationSchema.text,
 });
 
-export { createCommentValidation };
+const likeCommentValidation = Joi.object({
+  token: mainValidationSchema.token,
+  comment: mainValidationSchema.id,
+});
+
+const getPostCommentsValidation = Joi.object({
+  token: mainValidationSchema.token,
+  post: mainValidationSchema.id,
+});
+
+export {
+  createCommentValidation,
+  likeCommentValidation,
+  getPostCommentsValidation,
+};
