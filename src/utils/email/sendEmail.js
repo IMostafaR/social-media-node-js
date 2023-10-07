@@ -25,7 +25,7 @@ export const emailSender = async (options) => {
    * @type {Object}
    */
   const info = await transporter.sendMail({
-    from: `"E-Commerce App 📦" <${process.env.EMAIL_ADDRESS}>`,
+    from: `"Social media app ✨" <${process.env.SMTP_USER}>`,
     to: options.email,
     subject: options.subject,
     html: options.html,
