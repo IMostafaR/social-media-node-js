@@ -2,9 +2,9 @@ import slugify from "slugify";
 import { User } from "../../../database/models/user.model.js";
 import { AppError } from "../../utils/error/appError.js";
 import { catchAsyncError } from "../../utils/error/asyncError.js";
-import { handleAll, handleOne } from "../../utils/handler/refactor.handler.js";
 import crypto from "crypto";
 import { emailSender } from "../../utils/email/sendEmail.js";
+import { queryFactory } from "../../utils/apiFeature/queryFactory.js";
 
 /**
  * @desc Update user information based on the provided request body fields.
@@ -63,17 +63,48 @@ const updateUser = catchAsyncError(async (req, res, next) => {
 /**
  * @desc Get all users from DB
  */
-const getAllUsers = handleAll(User);
+const getAllUsers = catchAsyncError(async (req, res, next) => {
+  const query = User.find({});
+
+  // send query to queryFactory to apply pagination, filtering, sorting, search, and selection and send response from queryFactory
+  await queryFactory(query, req, res, next);
+});
 
 /**
- * Get a specific user by its id from DB
+ * Get user's profile
  */
-const getOneUser = handleOne(User);
+const getOneUser = catchAsyncError(async (req, res, next) => {
+  const { id: user } = req.user;
+
+  const existingUser = await User.findById(user);
+
+  if (!existingUser)
+    return next(new AppError(`User with ID ${user} not found`, 404));
+
+  // Send the response with the retrieved document
+  return res.status(200).json({
+    status: "success",
+    data: existingUser,
+  });
+});
 
 /**
  * Delete a specific user by its id from DB
  */
-const deleteOneUser = handleOne(User);
+const deleteOneUser = catchAsyncError(async (req, res, next) => {
+  const { id: user } = req.user;
+
+  const deletedUser = await User.findByIdAndDelete(user);
+
+  if (!deletedUser)
+    return next(new AppError(`User with ID ${user} not found`, 404));
+
+  // Send the response after successfully deleting the document
+  return res.status(200).json({
+    status: "success",
+    message: `Your account successfully deleted`,
+  });
+});
 
 /**
  * @desc Send reset password code to user's email inbox to reset their password if they forgot it
