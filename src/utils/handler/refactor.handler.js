@@ -111,16 +111,13 @@ const updateOne = (model) => {
  * @returns {Function} - An Express middleware function for handling the request.
  *
  * @throws {AppError} - If no documents are found, it may throw errors based on the situation:
- *   - 404 Not Found: If a category or page is not found.
+ *   - 404 Not Found: If a page is not found.
  *   - 404 Not Found: If no documents of the specified model exist.
  */
 const handleAll = (model, populateOptions) => {
   return catchAsyncError(async (req, res, next) => {
     // Create an empty query object
     let queryObj = {};
-
-    // If a category ID is provided in the request params, add it to the query
-    req.params && req.params.id ? (queryObj.category = req.params.id) : null;
 
     // Create an APIFeatures instance to apply pagination, filtering, sorting, search, and selection
     let features = new APIFeatures(
@@ -138,11 +135,7 @@ const handleAll = (model, populateOptions) => {
 
     // Handle cases where no documents are found
     if (!doc.length)
-      return req.params && req.params.id
-        ? next(
-            new AppError("Subcategories are not found for this category", 404)
-          )
-        : features.page // for pagination
+      features.page // for pagination
         ? next(new AppError(`Page not found`, 404)) // for pagination
         : next(new AppError(`No ${model.collection.name} found.`, 404));
 
@@ -167,29 +160,23 @@ const handleAll = (model, populateOptions) => {
  */
 const handleOne = (model, populateOptions) => {
   return catchAsyncError(async (req, res, next) => {
-    /**
-     * The ID of the document to be retrieved or deleted.
-     * @type {string}
-     */
-    const { id } = req.params;
-    /**
-     * The retrieved document by ID.
-     * @type {mongoose.Document}
-     */
-    let doc;
+    // Extract the current user's ID from the request
+    const { id: user } = req.user;
+
+    let doc = {};
 
     if (req.method === "GET") {
       // Retrieve a document by its ID
-      doc = await model.findById(id).populate(populateOptions);
+      doc = await model.findById(user).populate(populateOptions);
     } else if (req.method === "DELETE") {
       // Delete a document by its ID
-      doc = await model.findByIdAndDelete(id);
+      doc = await model.findByIdAndDelete(user);
     }
 
     // Handle cases where the document by ID is not found
     if (!doc)
       return next(
-        new AppError(`${model.modelName} with ID ${id} not found`, 404)
+        new AppError(`${model.modelName} with ID ${user} not found`, 404)
       );
 
     if (req.method === "GET") {
