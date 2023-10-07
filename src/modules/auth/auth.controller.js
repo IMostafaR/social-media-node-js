@@ -13,75 +13,37 @@ import crypto from "crypto";
 import bcrypt from "bcrypt";
 
 /**
- * Middleware for user signup.
- *
- * @function
- * @async
- * @public
- * @param {Express.Request} req - The Express request object.
- * @param {Express.Response} res - The Express response object.
- * @param {Express.NextFunction} next - The Express next middleware function.
- *
- * @throws {AppError} If the provided email already exists, it throws a 409 Conflict error.
- *
- * @returns {Promise<void>} A promise that resolves when the operation is complete.
- *
- * @example
- * // Example usage in an Express route handler:
- * app.post('/signup', signup);
+ * @desc Signup a new user.
  */
 const signup = catchAsyncError(async (req, res, next) => {
-  /**
-   * Request data from the request body.
-   * @type {Object}
-   * @property {string} firstName - The first name of the user.
-   * @property {string} lastName - The last name of the user.
-   * @property {string} email - The email of the user.
-   * @property {string} password - The password of the user.
-   */
-  const { firstName, lastName, email, password } = req.body;
+  // Request Data
+  const { firstName, lastName, email, password, jobTitle } = req.body;
 
-  /**
-   * Check if the provided email already exists in the database.
-   * @type {mongoose.Document | null}
-   */
+  // Check if the email is already registered
   const existingEmail = await User.findOne({ email });
 
   if (existingEmail)
     return next(new AppError(`${email} already registered`, 409));
 
-  /**
-   * Generate a token for email verification.
-   * @type {string}
-   */
+  // generate token with payload contains user's email to be sent to user's email inbox to verify their email
   const token = Jwt.sign({ email }, process.env.VERIFY_EMAIL_KEY, {
     expiresIn: 60 * 10,
   });
 
-  /**
-   * Generate a refresh token for email verification.
-   * @type {string}
-   */
-  const refreshToken = Jwt.sign({ email }, process.env.VERIFY_EMAIL_KEY); // to be sent to user's email to ask for new token if the original token has expired
+  // generate token with payload contains user's email to be sent to user's email inbox to ask for new token if the original token has expired
+  const refreshToken = Jwt.sign({ email }, process.env.VERIFY_EMAIL_KEY);
 
-  /**
-   * The main confirmation link for email verification.
-   * @type {string}
-   */
-  const confirmationLink = `${req.protocol}://${req.headers.host}/api/v1/auth/verifyEmail/${token}`; // main confirmation link
+  // email confirmation link creation with token
+  const confirmationLink = `${req.protocol}://${req.headers.host}/api/v1/auth/verifyEmail/${token}`;
 
-  /**
-   * The link to resend the confirmation email if needed.
-   * @type {string}
-   */
-  const resendEmailLink = `${req.protocol}://${req.headers.host}/api/v1/auth/resendEmail/${refreshToken}`; // to ask for new confirmation link
+  // email resend link creation with token
+  const resendEmailLink = `${req.protocol}://${req.headers.host}/api/v1/auth/resendEmail/${refreshToken}`;
 
+  // email html
   const html = `<a href="${confirmationLink}" target="_blank">Verify Email</a> <br />
   <p>If the link above isn't working <a href="${resendEmailLink}" target="_blank">click here</a> to resend new confirmation email</p>`;
 
-  /**
-   * Send the confirmation email.
-   */
+  // send confirmation email
   const confirmationEmail = await emailSender({
     email,
     subject: "Confirmation email",
@@ -96,28 +58,24 @@ const signup = catchAsyncError(async (req, res, next) => {
       )
     );
 
-  /**
-   * Generate a slug based on the user's first and last name.
-   * @type {string}
-   */
+  // create slug
   let slug = `${firstName} ${lastName}`;
-
   slug = slugify(slug);
 
-  /**
-   * Create a new user and save their data into the database.
-   * @type {mongoose.Document}
-   */
-  const newUser = await User.create({
+  const userData = {
     firstName,
     lastName,
     slug,
     email,
     password,
-  });
-  /**
-   * Send a successful response.
-   */
+  };
+
+  if (jobTitle) userData.jobTitle = jobTitle;
+
+  // create new user in DB
+  const newUser = await User.create(userData);
+
+  // Send successful response
   res.status(201).json({
     status: "success",
     message:
@@ -127,7 +85,7 @@ const signup = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * Send email verification to user's email inbox
+ * @desc Send email verification to user's email inbox
  */
 const verifyEmail = catchAsyncError(async (req, res, next) => {
   // Request Data
@@ -169,7 +127,7 @@ const verifyEmail = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * Resend verification email due to token expiration
+ * @desc Resend email verification to user's email inbox due to a request to resend verification email if the original token has expired
  */
 const resendVerificationEmail = catchAsyncError(async (req, res, next) => {
   // Request Data
@@ -212,7 +170,7 @@ const resendVerificationEmail = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * user login
+ * @desc Login user with email and password and generate token for user to use it in authenticate middleware
  */
 const login = catchAsyncError(async (req, res, next) => {
   // Request Data
@@ -265,15 +223,18 @@ const login = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * user logout
+ * @desc Logout user by updating securityDate in DB to prevent user from using the token generated in login API
  */
 const logout = catchAsyncError(async (req, res, next) => {
+  // Request Data
   const { id } = req.user;
 
+  // update securityDate in DB to prevent user from using the token generated in login API
   const user = await User.findByIdAndUpdate(id, {
     securityDate: parseInt(Date.now() / 1000),
   });
 
+  // send response
   res.status(200).json({
     status: "success",
     message: `${user.email} logged out successfully`,
@@ -281,7 +242,7 @@ const logout = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * Send code to user's email inbox due to a request to reset user's password
+ * @desc Send reset password code to user's email inbox to reset their password if they forgot it
  */
 const resetPassCode = catchAsyncError(async (req, res, next) => {
   // Request Data
@@ -302,12 +263,14 @@ const resetPassCode = catchAsyncError(async (req, res, next) => {
   <p>If you did not request resetting your password, ignore this email</p>
   `;
 
+  // send email to user with reset code
   await emailSender({
     email: user.email,
     subject: "Request to reset password",
     html,
   });
 
+  // send response
   res.status(200).json({
     status: "success",
     message: `Reset code has been sent to ${user.email}.`,
@@ -315,7 +278,7 @@ const resetPassCode = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * Reset password
+ * @desc Reset user's password with the code sent to their email inbox
  */
 const resetPassword = catchAsyncError(async (req, res, next) => {
   // Request Data
@@ -325,9 +288,11 @@ const resetPassword = catchAsyncError(async (req, res, next) => {
   let user = await User.findOne({ email });
   if (!user) return next(new AppError("Account is not exist", 404));
 
+  // check if the code is correct
   if (user && user.resetPassCode !== code)
     return next(new AppError("Incorrect code", 401));
 
+  // update user's password and securityDate in DB
   const securityDate = parseInt(Date.now() / 1000);
 
   user = await User.findOneAndUpdate(
@@ -339,17 +304,21 @@ const resetPassword = catchAsyncError(async (req, res, next) => {
     }
   );
 
+  // send response
   return res.status(200).json({
     status: "success",
     message: `Your password has been successfully reset. Please try to login`,
   });
 });
 
+/**
+ * @desc Authenticate user by checking if the token is valid and not expired
+ */
 const authenticate = catchAsyncError(async (req, res, next) => {
+  // Request Data
   const { token } = req.headers;
 
-  if (!token) return next(new AppError("Forbidden. Please login first", 403));
-
+  // verify token from request headers and check if the user is exist in DB
   Jwt.verify(token, process.env.SECRET_KEY, async (error, decoded) => {
     if (error) return next(new AppError("Invalid token", 401));
 
@@ -357,6 +326,7 @@ const authenticate = catchAsyncError(async (req, res, next) => {
 
     if (!user) return next(new AppError("No such user exist", 404));
 
+    // compare the securityDate in DB with the token's iat to check if the token is expired
     if (user.securityDate) {
       if (user.securityDate > decoded.iat)
         return next(new AppError("Forbidden. Please login first", 403));
@@ -366,6 +336,11 @@ const authenticate = catchAsyncError(async (req, res, next) => {
   });
 });
 
+/**
+ *
+ * @param  {...string} roles - roles to authorize
+ * @returns
+ */
 const authorize = (...roles) => {
   return catchAsyncError(async (req, res, next) => {
     if (!roles.includes(req.user.role))
