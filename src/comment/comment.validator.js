@@ -23,9 +23,15 @@ const getPostCommentsValidation = Joi.object({
   post: mainValidationSchema.id,
 });
 
+const deleteCommentValidation = Joi.object({
+  token: mainValidationSchema.token,
+  comment: mainValidationSchema.id,
+});
+
 export {
   createCommentValidation,
   updateCommentValidation,
   likeCommentValidation,
   getPostCommentsValidation,
+  deleteCommentValidation,
 };

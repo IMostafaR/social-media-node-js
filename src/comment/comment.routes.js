@@ -2,6 +2,7 @@ import { Router } from "express";
 import { validation } from "../middleware/validation/validation.js";
 import {
   createCommentValidation,
+  deleteCommentValidation,
   getPostCommentsValidation,
   likeCommentValidation,
   updateCommentValidation,
@@ -9,6 +10,7 @@ import {
 import { authenticate } from "../modules/auth/auth.controller.js";
 import {
   createComment,
+  deleteComment,
   getPostComments,
   likeComment,
   updateComment,
@@ -22,4 +24,4 @@ commentRouter
   .get(validation(getPostCommentsValidation), authenticate, getPostComments)
   .patch(validation(likeCommentValidation), authenticate, likeComment)
   .put(validation(updateCommentValidation), authenticate, updateComment)
-  .delete();
+  .delete(validation(deleteCommentValidation), authenticate, deleteComment);

@@ -126,4 +126,31 @@ const getPostComments = catchAsyncError(async (req, res, next) => {
   await queryFactory(query, req, res, next);
 });
 
-export { createComment, updateComment, likeComment, getPostComments };
+/**
+ * @desc delete a comment
+ */
+const deleteComment = catchAsyncError(async (req, res, next) => {
+  const { id: user } = req.user;
+  const { comment } = req.body;
+
+  // Find the user's comment by ID and delete it
+  const deletedComment = await Comment.findOneAndDelete({ user, _id: comment });
+
+  // Handle cases where the comment by ID is not found
+  if (!deletedComment)
+    return next(new AppError("Something went wrong, please try again", 404));
+
+  // send response
+  res.status(200).json({
+    status: "success",
+    message: "Comment deleted successfully",
+  });
+});
+
+export {
+  createComment,
+  updateComment,
+  likeComment,
+  getPostComments,
+  deleteComment,
+};
