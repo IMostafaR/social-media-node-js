@@ -1,6 +1,4 @@
 import slugify from "slugify";
-import { Category } from "../../../database/models/category.model.js";
-import cloudinary from "../../utils/cloud/cloud.js";
 import { AppError } from "../error/appError.js";
 import { catchAsyncError } from "../error/asyncError.js";
 import { APIFeatures } from "../apiFeature/apiFeature.js";
