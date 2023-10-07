@@ -5,10 +5,7 @@ import {
   resendVerificationEmail,
   login,
   logout,
-  resetPassCode,
-  resetPassword,
   authenticate,
-  authorize,
 } from "./auth.controller.js";
 import { authValidatorSchema } from "./auth.validator.js";
 import { validation } from "../../middleware/validation/validation.js";
@@ -39,18 +36,4 @@ authRouter.patch(
   validation(authValidatorSchema.logout),
   authenticate,
   logout
-);
-
-// send reset password code
-authRouter.patch(
-  "/resetCode",
-  validation(authValidatorSchema.resetPassCode),
-  resetPassCode
-);
-
-// reset password
-authRouter.patch(
-  "/resetPassword",
-  validation(authValidatorSchema.resetPassword),
-  resetPassword
 );

@@ -9,7 +9,6 @@ import { emailSender } from "../../utils/email/sendEmail.js";
 import { AppError } from "../../utils/error/appError.js";
 import { catchAsyncError } from "../../utils/error/asyncError.js";
 import Jwt from "jsonwebtoken";
-import crypto from "crypto";
 import bcrypt from "bcrypt";
 
 /**
@@ -242,76 +241,6 @@ const logout = catchAsyncError(async (req, res, next) => {
 });
 
 /**
- * @desc Send reset password code to user's email inbox to reset their password if they forgot it
- */
-const resetPassCode = catchAsyncError(async (req, res, next) => {
-  // Request Data
-  const { email } = req.body;
-
-  // find if user exists in DB
-  const user = await User.findOne({ email });
-  if (!user) return next(new AppError("Account is not exist", 404));
-
-  // generate random code and save it to DB
-  const code = crypto.randomBytes(3).toString("hex");
-  user.resetPassCode = code;
-  await user.save();
-
-  // send email to user with reset code
-  const html = `<p>This email is sent to you upon your request to reset your password</p>
-  <h1>Code: ${code}</h1>
-  <p>If you did not request resetting your password, ignore this email</p>
-  `;
-
-  // send email to user with reset code
-  await emailSender({
-    email: user.email,
-    subject: "Request to reset password",
-    html,
-  });
-
-  // send response
-  res.status(200).json({
-    status: "success",
-    message: `Reset code has been sent to ${user.email}.`,
-  });
-});
-
-/**
- * @desc Reset user's password with the code sent to their email inbox
- */
-const resetPassword = catchAsyncError(async (req, res, next) => {
-  // Request Data
-  const { email, code, password } = req.body;
-
-  // find if user exists in DB
-  let user = await User.findOne({ email });
-  if (!user) return next(new AppError("Account is not exist", 404));
-
-  // check if the code is correct
-  if (user && user.resetPassCode !== code)
-    return next(new AppError("Incorrect code", 401));
-
-  // update user's password and securityDate in DB
-  const securityDate = parseInt(Date.now() / 1000);
-
-  user = await User.findOneAndUpdate(
-    { email },
-    {
-      password,
-      securityDate,
-      $unset: { resetPassCode: 1 },
-    }
-  );
-
-  // send response
-  return res.status(200).json({
-    status: "success",
-    message: `Your password has been successfully reset. Please try to login`,
-  });
-});
-
-/**
  * @desc Authenticate user by checking if the token is valid and not expired
  */
 const authenticate = catchAsyncError(async (req, res, next) => {
@@ -360,8 +289,6 @@ export {
   resendVerificationEmail,
   login,
   logout,
-  resetPassCode,
-  resetPassword,
   authenticate,
   authorize,
 };

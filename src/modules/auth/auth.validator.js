@@ -31,16 +31,4 @@ export const authValidatorSchema = {
   logout: Joi.object({
     token: mainValidationSchema.token,
   }),
-
-  // send reset password code schema
-  resetPassCode: Joi.object({
-    email: mainValidationSchema.email,
-  }),
-  // reset password schema
-  resetPassword: Joi.object({
-    email: mainValidationSchema.email,
-    code: mainValidationSchema.code,
-    password: mainValidationSchema.password,
-    repeatPassword: mainValidationSchema.repeatPassword,
-  }),
 };
