@@ -7,6 +7,12 @@ const createCommentValidation = Joi.object({
   text: mainValidationSchema.text,
 });
 
+const updateCommentValidation = Joi.object({
+  token: mainValidationSchema.token,
+  comment: mainValidationSchema.id,
+  text: mainValidationSchema.text,
+});
+
 const likeCommentValidation = Joi.object({
   token: mainValidationSchema.token,
   comment: mainValidationSchema.id,
@@ -19,6 +25,7 @@ const getPostCommentsValidation = Joi.object({
 
 export {
   createCommentValidation,
+  updateCommentValidation,
   likeCommentValidation,
   getPostCommentsValidation,
 };

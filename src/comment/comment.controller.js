@@ -1,5 +1,6 @@
 import { Comment } from "../../database/models/comment.model.js";
 import { queryFactory } from "../utils/apiFeature/queryFactory.js";
+import { AppError } from "../utils/error/appError.js";
 import { catchAsyncError } from "../utils/error/asyncError.js";
 
 const populateOptions = {
@@ -26,6 +27,33 @@ const createComment = catchAsyncError(async (req, res, next) => {
     status: "success",
     message: "Comment added to post successfully",
     data: comment,
+  });
+});
+
+/**
+ * @desc update user's comment
+ */
+
+const updateComment = catchAsyncError(async (req, res, next) => {
+  const { id: user } = req.user;
+  const { comment, text } = req.body;
+
+  // check if the comment written by the current user and update it
+  const updatedComment = await Comment.findOneAndUpdate(
+    { _id: comment, user },
+    { text },
+    { new: true }
+  );
+
+  // Handle cases where the post by ID is not found
+  if (!updatedComment)
+    return next(new AppError("Something went wrong, please try again", 404));
+
+  // Send response
+  res.status(200).json({
+    status: "success",
+    message: "Comment updated successfully",
+    data: updatedComment,
   });
 });
 
@@ -98,4 +126,4 @@ const getPostComments = catchAsyncError(async (req, res, next) => {
   await queryFactory(query, req, res, next);
 });
 
-export { createComment, likeComment, getPostComments };
+export { createComment, updateComment, likeComment, getPostComments };

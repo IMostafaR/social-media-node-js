@@ -4,12 +4,14 @@ import {
   createCommentValidation,
   getPostCommentsValidation,
   likeCommentValidation,
+  updateCommentValidation,
 } from "./comment.validator.js";
 import { authenticate } from "../modules/auth/auth.controller.js";
 import {
   createComment,
   getPostComments,
   likeComment,
+  updateComment,
 } from "./comment.controller.js";
 
 export const commentRouter = Router();
@@ -19,5 +21,5 @@ commentRouter
   .post(validation(createCommentValidation), authenticate, createComment)
   .get(validation(getPostCommentsValidation), authenticate, getPostComments)
   .patch(validation(likeCommentValidation), authenticate, likeComment)
-  .put()
+  .put(validation(updateCommentValidation), authenticate, updateComment)
   .delete();
