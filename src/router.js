@@ -4,6 +4,7 @@ import { AppError } from "./utils/error/appError.js";
 import morgan from "morgan";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { userRouter } from "./modules/user/user.routes.js";
+import { postRouter } from "./modules/post/post.routes.js";
 
 export const router = (app, express) => {
   process.on("unhandledRejection", (error) => {
@@ -19,6 +20,7 @@ export const router = (app, express) => {
   app.use(morgan("dev"));
   app.use("/api/v1/auth", authRouter);
   app.use("/api/v1/users", userRouter);
+  app.use("/api/v1/posts", postRouter);
 
   app.all("*", (req, res, next) => {
     next(new AppError(`invalid routing ${req.originalUrl}`, 404));
