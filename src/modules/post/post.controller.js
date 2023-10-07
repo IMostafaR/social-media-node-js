@@ -73,7 +73,6 @@ const likePost = catchAsyncError(async (req, res, next) => {
 
   // Check if user has already liked this post
   const alreadyLiked = existingPost.likes.includes(user);
-  console.log(alreadyLiked);
 
   // If user has already liked this post, unlike it
 
