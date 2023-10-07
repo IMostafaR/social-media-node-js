@@ -19,7 +19,7 @@ const postSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
-    private: {
+    privatePost: {
       type: Boolean,
       default: false,
     },
