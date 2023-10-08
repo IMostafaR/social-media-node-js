@@ -1,7 +1,7 @@
-import { Comment } from "../../database/models/comment.model.js";
-import { queryFactory } from "../utils/apiFeature/queryFactory.js";
-import { AppError } from "../utils/error/appError.js";
-import { catchAsyncError } from "../utils/error/asyncError.js";
+import { Comment } from "../../../database/models/comment.model.js";
+import { queryFactory } from "../../utils/apiFeature/queryFactory.js";
+import { AppError } from "../../utils/error/appError.js";
+import { catchAsyncError } from "../../utils/error/asyncError.js";
 
 const populateOptions = {
   path: "user likes",

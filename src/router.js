@@ -5,7 +5,7 @@ import morgan from "morgan";
 import { authRouter } from "./modules/auth/auth.routes.js";
 import { userRouter } from "./modules/user/user.routes.js";
 import { postRouter } from "./modules/post/post.routes.js";
-import { commentRouter } from "./comment/comment.routes.js";
+import { commentRouter } from "./modules/comment/comment.routes.js";
 
 export const router = (app, express) => {
   process.on("unhandledRejection", (error) => {

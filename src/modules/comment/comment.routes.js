@@ -1,5 +1,6 @@
 import { Router } from "express";
-import { validation } from "../middleware/validation/validation.js";
+import { validation } from "../../middleware/validation/validation.js";
+import { authenticate } from "../auth/auth.controller.js";
 import {
   createCommentValidation,
   deleteCommentValidation,
@@ -7,7 +8,6 @@ import {
   likeCommentValidation,
   updateCommentValidation,
 } from "./comment.validator.js";
-import { authenticate } from "../modules/auth/auth.controller.js";
 import {
   createComment,
   deleteComment,
